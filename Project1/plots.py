@@ -1,171 +1,287 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jan  6 15:10:48 2020
 
-@author: fos[i]he
-"""
 import numpy as np 
 import matplotlib.pyplot as plt
 
-
-#Defining cons[i]tants[i]
-
-alpha = 1/137.036 #Fine-s[i]tructure cons[i]tant
-
-m = 0.10566 #Muon mas[i]s[i] in GeV
-M = 4.18   #Bottom quark mas[i]s[i] in GeV
-c_vm = -0.04
-c_am = -0.5
-c_vb = -0.35
-c_ab = -0.5
-
-mz = 91.1876
-gz = 0.7180
-gammaz = 2.4952
-
-
-e = np.sqrt(4*np.pi*alpha)  #Electron charge
-Q =  -1/3*e  #Bottom quark charge
-
-C_conv= 3.8808*10**4*10**12   #Conversion factor for areas from NU to barn 
+from functions2 import pi
+from functions2 import pf
+from functions2 import readData
+from functions2 import particles
+from functions2 import muonBottom
+#from functions import kappas
+from functions2 import ABCs
 
 
 
 
-###########################################################################################
-S_sqrt=150
-S=S_sqrt**2
-x = np.arange(-1,1,0.05) #Cos(theta)
+#muonBottom = 1 # Set to 1 in case of mM->bB, 0 in case of eE->cC
 
-dsigma_tot = [0]*x.size
-dsigma_a = [0]*x.size
-dsigma_z = [0]*x.size
-dsigma_az = [0]*x.size
-
-pi=np.sqrt(S/4 - m**2)
-pf=np.sqrt(S/4 - M**2)
-
-f_s = (gz**2)/((S-mz**2)**2+mz**2*gammaz**2) 
-K_a = (8*e**4)/(8*S**2)                                                                   #K_gamma
-K_z1 = 8*gz**2*f_s*((c_vm**2+c_am**2)*(c_vb**2+c_ab**2) + 2*c_vm*c_am*c_vb*c_ab)       #K_Z1
-K_z2 = 8*gz**2*f_s*((c_vm**2+c_am**2)*(c_vb**2+c_ab**2) - 2*c_vm*c_am*c_vb*c_ab)        #K_Z2
-K_az1 = (16*e**2*(S-mz**2)/(3*S))*f_s*(c_vm*c_vb+c_am*c_ab)                          #K_gammaz1
-K_az2 = (16*e**2*(S-mz**2)/(3*S))*f_s*(c_vm*c_vb-c_am*c_ab)   
-
-A = (S/4 - m**2)*(S/4 - M**2)*(2*K_a + K_z1 + K_z2 + K_az1 + K_az2)
-B = 0.5*S*np.sqrt((S/4-m**2)*(S/4-M**2))*(K_z2 - K_z1 +K_az2 - K_az1)
-C = 0.25*S*(m**2+M**2)*(K_az1+K_az2) + 0.25*S*(2*K_a + K_z1 + K_z2 + K_az1 + K_az2)
-
-A_a = 2*K_a*(S/4 - m**2)*(S/4-M**2)
-B_a = K_a*((S**2)/8+(S/2)*(m**2+M**2))
-
-A_z = ((pi*pf)**2)*(K_z1+K_z2)
-B_z = (S/2)*pi*pf*(K_z2-K_z1)
-C_z = (S/4)*(K_z1+K_z2)
-
-A_az = (pi*pf)**2*(K_az1+K_az2)
-B_az = S/2*pi*pf*(K_az2-K_az1)
-C_az = (S/4+pi**2*pf**2)*(K_az1+K_az2) + S/2*(m**2+M**2)
-
-for i in range(0,x.size):
     
-     dsigma_tot[i] = -C_conv*(3/(32*np.pi*S))*(pf/pi)*(A*x[i]**2+B*x[i]+C)
-     dsigma_a[i] = -C_conv*(3/(32*np.pi*S))*(pf/pi)*(A_a*x[i]**2+B_a)
-     dsigma_z[i] = -C_conv*(3/(32*np.pi*S))*(pf/pi)*(A_z*x[i]**2+B_z*x[i]+C_z)
-     dsigma_az[i] = -C_conv*(3/(32*np.pi*S))*(pf/pi)*(A_az*x[i]**2+B_az*x[i]+C_az)
+        
+(m,M,c_vm,c_am,c_vb,c_ab,Q) = particles(muonBottom)       
+         
+#delta = (c_vm**2+c_am**2)*(c_vb*c_ab)
+#delta2= c_vm*c_am*c_vb*c_ab
 
 
+C_conv= (0.197)**2*10**(-2)*10**12   #Conversion factor for areas from NU to barn 
 
+###########################################################################################   
+#Total Cross Section and asymmetry
+###########################################################################################
 
-
-#########################################################################################################
-s_sqrt = np.arange(10,125,1) # Centre of mas[i]s[i] energy in GeV
+s_sqrt = np.arange(20,200,0.5) # Centre of mass energy in GeV
 s = s_sqrt**2
 sigma_tot = [0]*s.size
 #print(sigma_tot.size)
 sigma_a = [0]*s.size
 sigma_z = [0]*s.size
 sigma_az = [0]*s.size
+sigma_H = [0]*s.size
 A_fb = [0]*s.size
 
 
 for i in range(0,s.size):
-    pi=np.sqrt(s[i]/4 - m**2)
-    pf=np.sqrt(s[i]/4 - M**2)
-    f_s = (gz**2)/((s[i]-mz**2)**2+mz**2*gammaz**2) 
-    K_a = (8*e**4)/(8*s[i]**2)                                                                   #K_gamma
-    K_z1 = 8*gz**2*f_s*((c_vm**2+c_am**2)*(c_vb**2+c_ab**2) + 2*c_vm*c_am*c_vb*c_ab)       #K_Z1
-    K_z2 = 8*gz**2*f_s*((c_vm**2+c_am**2)*(c_vb**2+c_ab**2) - 2*c_vm*c_am*c_vb*c_ab)        #K_Z2
-    K_az1 = (16*e**2*(s[i]-mz**2)/(3*s[i]))*f_s*(c_vm*c_vb+c_am*c_ab)                          #K_gammaz1
-    K_az2 = (16*e**2*(s[i]-mz**2)/(3*s[i]))*f_s*(c_vm*c_vb-c_am*c_ab)                          #K_gammaz1
-    
-    A = (s[i]/4 - m**2)*(s[i]/4 - M**2)*(2*K_a + K_z1 + K_z2 + K_az1 + K_az2)
-    B = 0.5*s[i]*np.sqrt((s[i]/4-m**2)*(s[i]/4-M**2))*(-K_z1 + K_z2 -K_az1 + K_az2)
-    C = 0.25*s[i]*(m**2+M**2)*(K_az1+K_az2) + 0.25*s[i]*(2*K_a + K_z1 + K_z2 + K_az1 + K_az2)
-    
-    A_a = 2*K_a*(s[i]/4 - m**2)*(s[i]/4-M**2)
-    B_a = K_a*((s[i]**2)/8+(s[i]/2)*(m**2+M**2))
-    
-    A_z = (pi*pf)**2*(K_z1+K_z2)
-    B_z = s[i]/2*pi*pf*(K_z2-K_z1)
-    C_z = s[i]/4*(K_z1+K_z2)
-    
-    A_az = (pi*pf)**2*(K_az1+K_az2)
-    B_az = s[i]/2*pi*pf*(K_az2-K_az1)
-    C_az = (s[i]/4+pi**2*pf**2)*(K_az1+K_az2) + s[i]/2*(m**2+M**2)
-    
-    #cos[i]_theta = np.arange(0,)
-
-    sigma_tot[i]= C_conv*(3/(16*np.pi*s[i]))*(pf/pi)*((1/3)*A+C)
-    sigma_a[i] =  C_conv*(3/(16*np.pi*s[i]))*(pf/pi)*((1/3)*A_a+B_a)
-    sigma_z[i] =  C_conv*(3/(16*np.pi*s[i]))*(pf/pi)*((1/3)*A_z+B_z)
-    
-    A_fb[i] = 0.5*(B/(A+C))
+#    pi = np.sqrt(s[i]/4 - m**2)
+#    pf = np.sqrt(s[i]/4-M**2)
+    (A,B,C,A_a,B_a,A_z,B_z,C_z,A_az,B_az,C_az,MH) = ABCs(s[i])
     
 
 
+    sigma_tot[i]= C_conv*(3/(16*np.pi*s[i]))*(pf(s[i])/pi(s[i]))*((1/3)*A+C)
+    sigma_a[i] =  C_conv*(3/(16*np.pi*s[i]))*(pf(s[i])/pi(s[i]))*((1/3)*A_a+B_a)
+    sigma_z[i] =  C_conv*(3/(16*np.pi*s[i]))*(pf(s[i])/pi(s[i]))*((1/3)*A_z+B_z)
+    sigma_H[i] =  C_conv*(3/(16*np.pi*s[i]))*(pf(s[i])/pi(s[i]))*(MH)
+#    
 
-#Remember to change sign in report
+    A_fb[i] = 0.5*(B)/(1/3*A+C)
+
+    
+###########################################################################################   
+#Differential Cross Section
+###########################################################################################
+S_sqrt=130
+S=S_sqrt**2
 
 
-plt.figure(0)
+x = np.linspace(-1,1,100) #Cos(theta)
+dsigma_tot = [0]*x.size
+dsigma_a = [0]*x.size
+dsigma_z = [0]*x.size
+dsigma_az = [0]*x.size
+
+(A,B,C,A_a,B_a,A_z,B_z,C_z,A_az,B_az,C_az,MH) = ABCs(S)
+
+
+for i in range(0,x.size):
+    
+     dsigma_tot[i] = C_conv*(3/(32*np.pi*S))*(pf(S)/pi(S))*(A*x[i]**2+B*x[i]+C)
+     dsigma_a[i]   = C_conv*(3/(32*np.pi*S))*(pf(S)/pi(S))*(A_a*x[i]**2+B_a)
+     dsigma_z[i]   = C_conv*(3/(32*np.pi*S))*(pf(S)/pi(S))*(A_z*x[i]**2+B_z*x[i]+C_z)
+     dsigma_az[i]  = C_conv*(3/(32*np.pi*S))*(pf(S)/pi(S))*(A_az*x[i]**2+B_az*x[i]+C_az)
+ 
+print(gz)
+######################################################################
+#Reading in compHEP data
+######################################################################
+
+#Data for el.mag., electroweak and higgs diagrams
+filename1 = "sigma_tot_nh_100.txt"
+filename2 = "dsigma_a_100.txt"
+filename3 = "gammaplusz.txt"
+
+#No higgs
+filename4 = "dsigma_tot_nh.txt"
+
+
+#Z-prime included
+filename5 = "Afb_Zp_n100.txt"
+filename6 = "sigma_Zp_n100.txt"
+filename7 = "dsigma_Zp_s5000.txt"
+filename8 = "dsigma_Zp_s6000.txt"
+
+filename9 = "dsigma_tot_s130.txt"
+filename10= "dsigma_a_s130.txt"
+filename11= "dsigma_z_s130.txt"
+filename12="dsigma_H_s130.txt"
+
+f= open(filename10,"r")
+col1,col2 = readData(f)
+
+#########################################################################
+#Plots
+#########################################################################
+
+
+fig0=plt.figure(0)
 
        
-plt.xlabel('$\sqrt{s}[GeV]$',size=14)
-plt.ylabel('$\sigma[b]$',size=14)
-plt.semilogy(s_sqrt, sigma_tot,'b',label = '$\sigma_{tot}$')
+plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+plt.ylabel('$\sigma[pb]$',size=12)
+plt.semilogy(s_sqrt, sigma_tot,'b',label = '$\sigma_{\gamma + Z +\gamma Z}$')
 plt.semilogy(s_sqrt, sigma_a,'r',label='$\sigma_{\gamma}$')
 plt.semilogy(s_sqrt, sigma_z,'g',label='$\sigma_{z}$')
+#plt.semilogy(s_sqrt, sigma_H,'m',label='$\sigma_{H}$')
+#plt.semilogy(col1,col2,'k',label='$\sigma_{CompHEP}$')
+#plt.semilogy(col1, col2,'m',label = '$\sigma_{\gamma + Z + H +Z\'}$')
+
+ax = fig0.gca()
+ax.set_xticks(np.arange(20, 210, 10))
+#ax.set_yticks(np.arange(0, 1., 30))
+#plt.scatter(x, y)
+plt.grid()
+plt.show()
 plt.legend()
 
-plt.figure(1)
 
-       
-plt.xlabel('$cos\theta$',size=14)
-plt.ylabel('$\sigma[b]$',size=14)
-plt.plot(x, dsigma_tot,'b',label = '$d\sigma_{tot}$')
-#plt.plot(x, dsigma_a,'r',label='$d\sigma_{\gamma}$')
-#plt.plot(x, dsigma_z,'g',label='$d\sigma_{z}$')
-#plt.plot(x, dsigma_az,'p',label='$d\sigma_{z}$')
+fig1=plt.figure(1)
+plt.title("$\sqrt{s} = 130$ GeV", size = 12 )
+#plt.title("Total differential cross section") 
+#plt.title("Differential cross section for $|M_{\gamma}|^2$ contribution")    
+#plt.title("Differential cross section for $|M_{Z}|^2$ contribution")  
+#plt.title("Diff. cross section for $M_\gamma*M_Z$ contr.")   
+plt.xlabel('$\\cos{\\theta}[1]$',size=12)
+plt.ylabel('$d\sigma/d\\cos{\\theta}[pb/rad]$',size=12)
+#plt.ylabel('$\sigma[pb]$',size=14)
+
+plt.plot(x, dsigma_tot,'b',label = '$d\sigma_{\gamma + Z +\gamma*Z +H }$')
+plt.plot(x, dsigma_a,'r',label='$d\sigma_{\gamma}$')
+plt.plot(x, dsigma_z,'g',label='$d\sigma_{z}$')
+#plt.plot(x, dsigma_az,'m',label='$d\sigma_{\gamma}z}$')
+ax1 = fig1.gca()
+ax1.set_xticks(np.arange(-1, 1.1, 0.2))
+#ax.set_yticks(np.arange(0, 1., 30))
+#plt.scatter(x, y)
+plt.grid()
+plt.show()
 plt.legend()
 
-plt.figure(2)
-
-       
-plt.xlabel('$\sqrt{s}[GeV]$',size=14)
-plt.ylabel('$A_{FB}$',size=14)
-plt.plot(s_sqrt, A_fb,'b',label = '$d\sigma_{tot}$')
-print(x)
-
-#print(s[50])
-#print(sigma_tot[50])
 
 
-#X = np.arange(0,10,1)
-#Y = X**2
-#plt.figure(1)
-#plt.plot(X,Y)
+fig2=plt.figure(2)
+if (muonBottom == 1):
+    plt.title("Forward-backward asymmetry for $\mu^{-},\mu^{+}\\rightarrow b,\\bar{b}$")
+    plt.title("Forward-backward asymmetry")
+    plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+    plt.ylabel('$A_{FB}[pb]$',size=12)
+    plt.plot(s_sqrt, A_fb,'r',label = '$\mu^{-},\mu^{+}\\rightarrow b,\\bar{b}$')
+
+#    ax.set_yticks(np.arange(0, 1., 30))
+    #plt.scatter(x, y)
+    plt.grid()
+    plt.show()
+    plt.legend()
+else:
+    plt.title("Forward-backward asymmetry for $e^{-},e^{+}\\rightarrow c,\\bar{c}$")
+    plt.title("Forward-backward asymmetry")
+    plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+    plt.ylabel('$A_{FB}[pb]$',size=12)
+    plt.plot(s_sqrt, A_fb,'b',label = '$e^{-},e^{+}\\rightarrow c,\\bar{c}$')
+#    ax = fig2.gca()
+#    ax.set_xticks(np.arange(20, 210, 10))
+#    ax.set_yticks(np.arange(0, 1., 30))
+    #plt.scatter(x, y)
+    plt.grid()
+
+    plt.legend()
+    plt.show()
 
 
 
-        
+
+
+##############################################################################
+#No Z prime
+##############################################################################
+
+#fig3=plt.figure(3)
+#plt.title("Differential cross section, no Higgs, CompHEP")
+#plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+#plt.ylabel('$dd\\cos{\\theta}[pb/rad]$',size=12)
+#plt.plot(col1, col2,'b',label = '$d\sigma_{\gamma + Z }$')
+#ax = fig3.gca()
+#ax.set_xticks(np.arange(-1,1,0.2))
+##ax.set_yticks(np.arange(0, 1., 30))
+##plt.scatter(x, y)
+#plt.grid()
+#plt.show()
+#plt.legend()
+
+#fig3=plt.figure(3)
+#plt.title("Total cross section, no Higgs, CompHEP")
+#plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+#plt.ylabel('$\sigma[pb]$',size=12)
+#plt.semilogy(col1, col2,'b',label = '$\sigma_{\gamma + Z }$')
+#ax = fig3.gca()
+#ax.set_xticks(np.arange(20, 210, 10))
+##ax.set_yticks(np.arange(0, 1., 30))
+##plt.scatter(x, y)
+#plt.grid()
+#plt.show()
+#plt.legend()
+#############################
+#Z prime
+##############################
+
+#fig3=plt.figure(3)
+#plt.title("Total cross section, including Z'")
+#plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+#plt.ylabel('$\sigma[pb]$',size=12)
+#plt.semilogy(col1, col2,'b',label = '$\sigma_{\gamma + Z + H +Z\'}$')
+#ax = fig3.gca()
+#ax.set_xticks(np.arange(50, 11000, 1000))
+##ax.set_yticks(np.arange(0, 1., 30))
+##plt.scatter(x, y)
+#plt.grid()
+#plt.show()
+#plt.legend()
+
+#fig4=plt.figure(4)
+#plt.title("Differential cross section with Z' included")
+#plt.xlabel('$\\cos{\\theta}[1]$',size=12)
+#plt.ylabel('$d\sigma_{\gamma + Z + H +Z\'}/d\\cos{\\theta}[pb/rad]$',size=12)
+#plt.plot(col1, col2,'r',label="$\sqrt{s} = 6TeV$")
+#
+#ax = fig4.gca()
+#ax.set_xticks(np.arange(-1, 1.2, 0.2))
+##ax.set_yticks(np.arange(0, 1., 30))
+##plt.scatter(x, y)
+#plt.grid()
+#plt.show()
+#plt.legend()
+
+#fig5=plt.figure(5)
+#plt.title("Forward-backward asymmetry with Z' included")
+#plt.xlabel('$\sqrt{s}[GeV]$',size=12)
+#plt.ylabel('$A_{FB}[pb]$',size=12)
+#plt.plot(col1, col2,'b')
+#
+#ax = fig5.gca()
+#ax.set_xticks(np.arange(50, 11000, 1000))
+##ax.set_yticks(np.arange(0, 1., 30))
+##plt.scatter(x, y)
+#plt.grid()
+#plt.show()
+    
+fig6=plt.figure(6)
+plt.title("Differential cross sections from CompHEP, $\sqrt{s} = 130GeV$")
+plt.xlabel('$\\cos{\\theta}[1]$',size=12)
+plt.ylabel('$d\sigma/d\\cos{\\theta}[pb/rad]$',size=12)
+#plt.plot(col1, col2,'b',label="$d\sigma_{\gamma + Z + H}$")
+plt.plot(col1, col2,'r',label="$d\sigma_{\gamma}$")
+#plt.plot(col1, col2,'g',label="$d\sigma_{Z}$")
+#plt.plot(col1, col2,'m',label="$d\sigma_{ H}$")
+
+ax = fig6.gca()
+ax.set_xticks(np.arange(-1, 1.2, 0.2))
+#ax.set_yticks(np.arange(0, 1., 30))
+#plt.scatter(x, y)
+plt.grid()
+plt.show()
+plt.legend()
+
+
+#plt.figure(3)
+#plt.semilogy(s_sqrt, sigma_H,'m',label='$\sigma_{H}$')
+
+
+
